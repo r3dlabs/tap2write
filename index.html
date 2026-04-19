@@ -27,38 +27,51 @@
         }
 
         /* Full Screen Button */
-        #fs-bar { height: 40px; background: #222; display: flex; }
+        #fs-bar { height: 40px; background: #222; display: flex; flex-shrink: 0; }
         #fs-bar button { flex: 1; background: none; color: #ccc; border: none; font-size: 0.9rem; cursor: pointer; }
 
-        /* Giant Text Box */
+        /* Giant Text Box - Fixed Height */
         #display-box {
-            height: 25%;
+            height: 25vh;
             display: flex; align-items: center; justify-content: center;
             border-bottom: 5px solid var(--brdr);
             padding: 10px;
             font-size: 5rem; font-weight: 900;
             text-align: center; word-break: break-all;
             background: var(--bg);
+            flex-shrink: 0;
         }
 
-        /* Navigation */
-        .nav-bar { display: flex; height: 10%; }
+        /* Navigation - Fixed Height */
+        .nav-bar { display: flex; height: 10vh; flex-shrink: 0; }
         .nav-btn {
-            flex: 1; font-size: 1.8rem; font-weight: bold;
+            flex: 1; font-size: 1.5rem; font-weight: bold;
             background: var(--btn); color: var(--txt);
             border: 1px solid var(--brdr); cursor: pointer;
         }
         .active-tab { background-color: var(--txt) !important; color: var(--bg) !important; }
 
-        /* Screens */
-        .screen { display: none; flex-grow: 1; padding: 10px; box-sizing: border-box; }
-        .active-screen { display: grid; }
+        /* Screens - Fills remaining space */
+        .screen { display: none; flex-grow: 1; padding: 10px; box-sizing: border-box; overflow: hidden; }
+        .active-screen { display: flex; flex-direction: column; }
 
-        /* Phrase Screen */
-        #phrase-grid { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); gap: 10px; }
+        /* Phrase Screen Grid */
+        #phrase-grid { 
+            display: grid;
+            grid-template-columns: 1fr 1fr; 
+            grid-template-rows: repeat(3, 1fr); 
+            gap: 10px;
+            height: 100%;
+        }
 
-        /* Keyboard Screen */
-        #keyboard-grid { grid-template-columns: repeat(7, 1fr); gap: 8px; }
+        /* Keyboard Screen Grid - 7 Columns */
+        #keyboard-grid { 
+            display: grid;
+            grid-template-columns: repeat(7, 1fr); 
+            grid-template-rows: repeat(5, 1fr);
+            gap: 8px;
+            height: 100%;
+        }
 
         /* Universal Tile Style */
         .tile {
@@ -67,13 +80,15 @@
             font-size: 2.5rem; font-weight: bold;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
         .tile:active { background-color: var(--txt); color: var(--bg); }
 
-        /* Button Colors */
+        /* Special Keys */
         .tile.special { background-color: #555; color: white; }
         .tile.del { background-color: #aa4444; color: white; }
         .tile.wide { grid-column: span 3; }
+        .tile.med { grid-column: span 2; }
     </style>
 </head>
 <body data-theme="dark">
@@ -107,15 +122,10 @@
         const display = document.getElementById('display-box');
         let currentString = "";
 
-        // Build Keyboard Safely
         const kb = document.getElementById('keyboard-grid');
-        const layout = [
-            'A','B','C','D','E','F','G',
-            'H','I','J','K','L','M','N',
-            'O','P','Q','R','S','T','U',
-            'V','W','X','Y','Z'
-        ];
+        const layout = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
+        // Build Keyboard
         layout.forEach(char => {
             const el = document.createElement('div');
             el.className = 'tile';
@@ -124,8 +134,8 @@
             kb.appendChild(el);
         });
 
-        // Add the bottom row manually to ensure they work
-        function createSpecialBtn(label, classes, action) {
+        // Bottom Row Controls
+        function createBtn(label, classes, action) {
             const btn = document.createElement('div');
             btn.className = 'tile ' + classes;
             btn.innerText = label;
@@ -133,18 +143,17 @@
             kb.appendChild(btn);
         }
 
-        createSpecialBtn('DEL', 'del', deleteChar);
-        createSpecialBtn('SPACE', 'special wide', addSpace);
-        createSpecialBtn('CLEAR', 'special', clearAll);
+        createBtn('DEL', 'del', deleteChar);
+        createBtn('SPACE', 'special wide', addSpace);
+        createBtn('CLEAR', 'special med', clearAll);
 
-        // Functions
         function tapText(txt) {
             currentString = txt;
             display.innerText = txt;
         }
 
         function addChar(c) {
-            if (display.innerText === "READY" || display.innerText === "READY") currentString = "";
+            if (display.innerText === "READY") currentString = "";
             currentString += c;
             display.innerText = currentString;
         }
@@ -171,13 +180,13 @@
             const bW = document.getElementById('btn-write');
 
             if (mode === 'phrases') {
-                p.classList.add('active-screen');
-                w.classList.remove('active-screen');
+                p.style.display = 'flex';
+                w.style.display = 'none';
                 bP.classList.add('active-tab');
                 bW.classList.remove('active-tab');
             } else {
-                w.classList.add('active-screen');
-                p.classList.remove('active-screen');
+                w.style.display = 'flex';
+                p.style.display = 'none';
                 bW.classList.add('active-tab');
                 bP.classList.remove('active-tab');
             }
