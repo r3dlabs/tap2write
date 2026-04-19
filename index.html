@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Visual Patient Assistant</title>
+    <title>Patient Assistant</title>
     <style>
         :root {
             --bg: #e0e0e0;
@@ -26,61 +26,70 @@
             display: flex; flex-direction: column;
         }
 
-        /* Full Screen Button */
-        #fs-bar { height: 40px; background: #222; display: flex; flex-shrink: 0; }
-        #fs-bar button { flex: 1; background: none; color: #ccc; border: none; font-size: 0.9rem; cursor: pointer; }
+        /* Full Screen Bar */
+        #fs-bar { height: 4vh; background: #222; display: flex; flex-shrink: 0; }
+        #fs-bar button { flex: 1; background: none; color: #ccc; border: none; font-size: 0.8rem; cursor: pointer; }
 
-        /* Giant Text Box - Fixed Height */
+        /* Display Box - Flexible but keeps its ratio */
         #display-box {
-            height: 25vh;
+            height: 20vh;
             display: flex; align-items: center; justify-content: center;
-            border-bottom: 5px solid var(--brdr);
+            border-bottom: 4px solid var(--brdr);
             padding: 10px;
-            font-size: 5rem; font-weight: 900;
-            text-align: center; word-break: break-all;
+            font-size: clamp(2.5rem, 8vw, 6rem); /* Responsive font sizing */
+            font-weight: 900;
+            text-align: center; 
+            word-break: break-word;
             background: var(--bg);
             flex-shrink: 0;
         }
 
-        /* Navigation - Fixed Height */
+        /* Navigation Bar */
         .nav-bar { display: flex; height: 10vh; flex-shrink: 0; }
         .nav-btn {
-            flex: 1; font-size: 1.5rem; font-weight: bold;
+            flex: 1; font-size: clamp(1rem, 4vw, 1.8rem); font-weight: bold;
             background: var(--btn); color: var(--txt);
             border: 1px solid var(--brdr); cursor: pointer;
         }
         .active-tab { background-color: var(--txt) !important; color: var(--bg) !important; }
 
-        /* Screens - Fills remaining space */
-        .screen { display: none; flex-grow: 1; padding: 10px; box-sizing: border-box; overflow: hidden; }
-        .active-screen { display: flex; flex-direction: column; }
+        /* Main Screen Container */
+        .screen { 
+            display: none; 
+            height: 66vh; /* Remaining height */
+            padding: 10px; 
+            box-sizing: border-box; 
+        }
+        .active-screen { display: block; }
 
-        /* Phrase Screen Grid */
+        /* Phrase Layout */
         #phrase-grid { 
             display: grid;
-            grid-template-columns: 1fr 1fr; 
+            grid-template-columns: repeat(2, 1fr); 
             grid-template-rows: repeat(3, 1fr); 
             gap: 10px;
             height: 100%;
         }
 
-        /* Keyboard Screen Grid - 7 Columns */
+        /* Keyboard Layout - 7 columns wide */
         #keyboard-grid { 
             display: grid;
             grid-template-columns: repeat(7, 1fr); 
             grid-template-rows: repeat(5, 1fr);
-            gap: 8px;
+            gap: 6px;
             height: 100%;
         }
 
-        /* Universal Tile Style */
+        /* Responsive Tiles */
         .tile {
             background: var(--btn); color: var(--txt);
-            border: 4px solid var(--brdr); border-radius: 12px;
-            font-size: 2.5rem; font-weight: bold;
+            border: 3px solid var(--brdr); border-radius: 8px;
+            font-size: clamp(1.2rem, 5vw, 2.8rem); 
+            font-weight: bold;
             display: flex; align-items: center; justify-content: center;
-            cursor: pointer; -webkit-tap-highlight-color: transparent;
+            cursor: pointer;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
         .tile:active { background-color: var(--txt); color: var(--bg); }
 
@@ -89,11 +98,18 @@
         .tile.del { background-color: #aa4444; color: white; }
         .tile.wide { grid-column: span 3; }
         .tile.med { grid-column: span 2; }
+
+        /* Adjustments for Portrait/Narrow Screens */
+        @media (max-width: 600px) {
+            #keyboard-grid { grid-template-columns: repeat(5, 1fr); grid-template-rows: auto; }
+            .tile.wide { grid-column: span 2; }
+            .tile { font-size: 1.5rem; border-width: 2px; }
+        }
     </style>
 </head>
 <body data-theme="dark">
 
-    <div id="fs-bar"><button onclick="goFull()">⛶ TAP FOR FULL SCREEN</button></div>
+    <div id="fs-bar"><button onclick="goFull()">⛶ FULL SCREEN MODE</button></div>
 
     <div id="display-box">READY</div>
 
@@ -105,12 +121,12 @@
 
     <div id="phrase-screen" class="screen active-screen">
         <div id="phrase-grid">
-            <div class="tile" onclick="tapText('THIRSTY')">THIRSTY</div>
-            <div class="tile" onclick="tapText('HUNGRY')">HUNGRY</div>
-            <div class="tile" onclick="tapText('TOILET')">TOILET</div>
-            <div class="tile" style="border-color:red" onclick="tapText('PAIN')">PAIN</div>
-            <div class="tile" onclick="tapText('YES')">YES</div>
-            <div class="tile" onclick="tapText('NO')">NO</div>
+            <div class="tile" onclick="tapText('THIRSTY')">THIRSTY 💧</div>
+            <div class="tile" onclick="tapText('HUNGRY')">HUNGRY 🍎</div>
+            <div class="tile" onclick="tapText('TOILET')">TOILET 🚽</div>
+            <div class="tile" style="border-color:red" onclick="tapText('PAIN')">PAIN 🚨</div>
+            <div class="tile" onclick="tapText('YES')">YES ✅</div>
+            <div class="tile" onclick="tapText('NO')">NO ❌</div>
         </div>
     </div>
 
@@ -122,10 +138,10 @@
         const display = document.getElementById('display-box');
         let currentString = "";
 
+        // Build Responsive Keyboard
         const kb = document.getElementById('keyboard-grid');
         const layout = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-        // Build Keyboard
         layout.forEach(char => {
             const el = document.createElement('div');
             el.className = 'tile';
@@ -134,7 +150,6 @@
             kb.appendChild(el);
         });
 
-        // Bottom Row Controls
         function createBtn(label, classes, action) {
             const btn = document.createElement('div');
             btn.className = 'tile ' + classes;
@@ -145,8 +160,9 @@
 
         createBtn('DEL', 'del', deleteChar);
         createBtn('SPACE', 'special wide', addSpace);
-        createBtn('CLEAR', 'special med', clearAll);
+        createBtn('CLR', 'special', clearAll);
 
+        // Core Functions
         function tapText(txt) {
             currentString = txt;
             display.innerText = txt;
@@ -180,13 +196,13 @@
             const bW = document.getElementById('btn-write');
 
             if (mode === 'phrases') {
-                p.style.display = 'flex';
-                w.style.display = 'none';
+                p.classList.add('active-screen');
+                w.classList.remove('active-screen');
                 bP.classList.add('active-tab');
                 bW.classList.remove('active-tab');
             } else {
-                w.style.display = 'flex';
-                p.style.display = 'none';
+                w.classList.add('active-screen');
+                p.classList.remove('active-screen');
                 bW.classList.add('active-tab');
                 bP.classList.remove('active-tab');
             }
@@ -197,9 +213,10 @@
         }
 
         function goFull() {
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
-            }
+            const doc = document.documentElement;
+            if (doc.requestFullscreen) doc.requestFullscreen();
+            else if (doc.webkitRequestFullscreen) doc.webkitRequestFullscreen();
+            else if (doc.msRequestFullscreen) doc.msRequestFullscreen();
         }
     </script>
 </body>
