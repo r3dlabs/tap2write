@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Visual Communication Board</title>
+    <style>
+        :root {
+            --bg: #e0e0e0;
+            --txt: #000000;
+            --btn: #ffffff;
+            --brdr: #999;
+        }
+
+        [data-theme="dark"] {
+            --bg: #000000;
+            --txt: #fdfd96; 
+            --btn: #1a1a1a;
+            --brdr: #444;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: var(--bg);
+            color: var(--txt);
+            font-family: sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Action Bar */
+        .action-bar {
+            display: flex;
+            background: #333;
+            height: 50px;
+        }
+
+        .fs-toggle {
+            flex: 1;
+            background: #444;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        /* Giant Text Display */
+        #display-box {
+            height: 30%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 5px solid var(--brdr);
+            padding: 20px;
+            font-size: 6.5rem; 
+            font-weight: 900;
+            text-align: center;
+            word-wrap: break-word;
+            overflow: hidden;
+        }
+
+        /* Navigation */
+        .nav-bar {
+            display: flex;
+            height: 12%;
+        }
+
+        .nav-btn {
+            flex: 1;
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: var(--btn);
+            color: var(--txt);
+            border: 1px solid var(--brdr);
+            cursor: pointer;
+        }
+
+        .active-tab {
+            background-color: var(--txt) !important;
+            color: var(--bg) !important;
+        }
+
+        /* Screens */
+        .screen { display: none; flex-grow: 1; padding: 10px; }
+        .active-screen { display: grid; }
+
+        /* Phrase Grid */
+        #phrase-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        /* Keyboard Grid */
+        #keyboard-grid {
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .tile {
+            background: var(--btn);
+            color: var(--txt);
+            border: 4px solid var(--brdr);
+            border-radius: 12px;
+            font-size: 2.8rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .tile:active {
+            background-color: var(--txt);
+            color: var(--bg);
+        }
+
+        .tile.wide { grid-column: span 3; }
+        .tile.clear { grid-column: span 2; background-color: #666; color: white; }
+        .tile.del { background-color: #aa4444; color: white; }
+
+    </style>
+</head>
+<body data-theme="dark">
+
+    <div class="action-bar">
+        <button class="fs-toggle" onclick="toggleFullScreen()">⛶ TAP FOR FULL SCREEN</button>
+    </div>
+
+    <div id="display-box">READY</div>
+
+    <div class="nav-bar">
+        <button id="tab1" class="nav-btn active-tab" onclick="showScreen('phrase-grid', 'tab1')">PHRASES</button>
+        <button id="tab2" class="nav-btn" onclick="showScreen('keyboard-grid', 'tab2')">WRITE</button>
+        <button class="nav-btn" onclick="toggleTheme()">☀️/🌙</button>
+    </div>
+
+    <div id="phrase-grid" class="screen active-screen">
+        <div class="tile" onclick="updateDisplay('THIRSTY')">THIRSTY</div>
+        <div class="tile" onclick="updateDisplay('HUNGRY')">HUNGRY</div>
+        <div class="tile" onclick="updateDisplay('TOILET')">TOILET</div>
+        <div class="tile" style="border-color: #ff4444;" onclick="updateDisplay('PAIN')">PAIN</div>
+        <div class="tile" onclick="updateDisplay('YES')">YES</div>
+        <div class="tile" onclick="updateDisplay('NO')">NO</div>
+    </div>
+
+    <div id="keyboard-grid" class="screen">
+        </div>
+
+    <script>
+        const display = document.getElementById('display-box');
+        let currentString = "";
+
+        // Keyboard Setup
+        const kb = document.getElementById('keyboard-grid');
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+        letters.forEach(l => {
+            const btn = document.createElement('div');
+            btn.className = 'tile';
+            btn.innerText = l;
+            btn.onclick = () => {
+                if(currentString === "READY") currentString = "";
+                currentString += l;
+                display.innerText = currentString;
+            };
+            kb.appendChild(btn);
+        });
+
+        kb.innerHTML += `
+            <div class="tile del" onclick="deleteChar()">DEL</div>
+            <div class="tile wide" onclick="addSpace()">SPACE</div>
+            <div class="tile clear" onclick="clearAll()">CLEAR</div>
+        `;
+
+        function updateDisplay(txt) {
+            currentString = txt;
+            display.innerText = txt;
+        }
+
+        function deleteChar() {
+            currentString = currentString.slice(0, -1);
+            display.innerText = currentString || "WRITE...";
+        }
+
+        function addSpace() { currentString += " "; display.innerText = currentString; }
+        function clearAll() { currentString = ""; display.innerText = "READY"; }
+
+        function showScreen(id, tabId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+            document.querySelectorAll('.nav-bar .nav-btn').forEach(b => b.classList.remove('active-tab'));
+            document.getElementById(id).classList.add('active-screen');
+            document.getElementById(tabId).classList.add('active-tab');
+        }
+
+        function toggleTheme() {
+            const b = document.body;
+            b.getAttribute('data-theme') === 'dark' ? b.removeAttribute('data-theme') : b.setAttribute('data-theme', 'dark');
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(e => {
+                    alert(`Error attempting to enable full-screen mode: ${e.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
